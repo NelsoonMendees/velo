@@ -13,54 +13,149 @@ test.describe('Consulta de Pedido', async () => {
 
   test('Deve buscar um pedido aprovado', async ({ page }) => {
     //test data
-    const orderId = 'VLO-61GOR8'
-    const orderStatus = 'APROVADO'
+    const order = {
+      number: 'VLO-351NPI',
+      status: 'APROVADO',
+      color: 'Midnight Black',
+      wheels: 'sport Wheels',
+      customer: {
+        name: 'Nelson Mendes',
+        email: 'nelson_mendes@live.com'
+      },
+      payment: 'À Vista'
+    }
 
     //Act
-    await page.locator('input[name="order-id"]').fill(orderId)
-    // await page.getByRole('textbox', { name: 'Número do Pedido' }).fill('VLO-61GOR8')
+    await page.locator('input[name="order-id"]').fill(order.number)
     await page.getByTestId('search-order-button').click()
 
     //Assert
-    // await expect(page.getByTestId('order-result-id')).toContainText('VLO-61GOR8', { timeout: 10_000 })
-    // await expect(page.getByTestId('order-result-status')).toContainText('APROVADO')
-    //await expect(page.getByText('VLO-61GOR8')).toBeVisible()
+    await expect(page.getByTestId(`order-result-${order.number}`)).toMatchAriaSnapshot(`
+      - img
+      - paragraph: Pedido
+      - paragraph: ${order.number}
+      - img
+      - text: ${order.status}
+      - img "Velô Sprint"
+      - paragraph: Modelo
+      - paragraph: Velô Sprint
+      - paragraph: Cor
+      - paragraph: ${order.color}
+      - paragraph: Interior
+      - paragraph: cream
+      - paragraph: Rodas
+      - paragraph: ${order.wheels}
+      - heading "Dados do Cliente" [level=4]
+      - paragraph: Nome
+      - paragraph: ${order.customer.name}
+      - paragraph: Email
+      - paragraph: ${order.customer.email}
+      - paragraph: Loja de Retirada
+      - paragraph
+      - paragraph: Data do Pedido
+      - paragraph: /\\d+\\/\\d+\\/\\d+/
+      - heading "Pagamento" [level=4]
+      - paragraph: ${order.payment}
+      - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
+      `)
+  })
 
-    // const containerPedido = page
-    //   .getByRole('paragraph')
-    //   .filter({ hasText: /^Pedido$/ })
-    //   .locator('..')
-    // await expect(containerPedido).toContainText('VLO-61GOR8')
-    // await expect(page.getByText(orderStatus)).toBeVisible()
+  test('Deve buscar um pedido reprovado', async ({ page }) => {
+    //test data
+    const order = {
+      number: 'VLO-OEZV0T',
+      status: 'REPROVADO',
+      color: 'Lunar White',
+      wheels: 'sport Wheels',
+      customer: {
+        name: 'Lorraine Crispim',
+        email: 'lorrainecrispim20@outlook.com'
+      },
+      payment: 'À Vista'
+    }
 
-    await expect(page.getByTestId(`order-result-${orderId}`)).toMatchAriaSnapshot(`
-    - img
-    - paragraph: Pedido
-    - paragraph: ${orderId}
-    - img
-    - text: ${orderStatus}
-    - img "Velô Sprint"
-    - paragraph: Modelo
-    - paragraph: Velô Sprint
-    - paragraph: Cor
-    - paragraph: Midnight Black
-    - paragraph: Interior
-    - paragraph: cream
-    - paragraph: Rodas
-    - paragraph: sport Wheels
-    - heading "Dados do Cliente" [level=4]
-    - paragraph: Nome
-    - paragraph: Nelson Mendes
-    - paragraph: Email
-    - paragraph: nelson_mendes@live.com
-    - paragraph: Loja de Retirada
-    - paragraph
-    - paragraph: Data do Pedido
-    - paragraph: /\\d+\\/\\d+\\/\\d+/
-    - heading "Pagamento" [level=4]
-    - paragraph: À Vista
-    - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
-    `)
+    //Act
+    await page.locator('input[name="order-id"]').fill(order.number)
+    await page.getByTestId('search-order-button').click()
+
+    //Assert
+    await expect(page.getByTestId(`order-result-${order.number}`)).toMatchAriaSnapshot(`
+      - img
+      - paragraph: Pedido
+      - paragraph: ${order.number}
+      - img
+      - text: ${order.status}
+      - img "Velô Sprint"
+      - paragraph: Modelo
+      - paragraph: Velô Sprint
+      - paragraph: Cor
+      - paragraph: ${order.color}
+      - paragraph: Interior
+      - paragraph: cream
+      - paragraph: Rodas
+      - paragraph: ${order.wheels}
+      - heading "Dados do Cliente" [level=4]
+      - paragraph: Nome
+      - paragraph: ${order.customer.name}
+      - paragraph: Email
+      - paragraph: ${order.customer.email}
+      - paragraph: Loja de Retirada
+      - paragraph
+      - paragraph: Data do Pedido
+      - paragraph: /\\d+\\/\\d+\\/\\d+/
+      - heading "Pagamento" [level=4]
+      - paragraph: ${order.payment}
+      - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
+      `)
+  })
+
+  test('Deve buscar um pedido em analise', async ({ page }) => {
+    //test data
+    const order = {
+      number: 'VLO-FK02OY',
+      status: 'EM_ANALISE',
+      color: 'Glacier Blue',
+      wheels: 'aero Wheels',
+      customer: {
+        name: 'Fernanda Karolina',
+        email: 'fernanda@qa.com'
+      },
+      payment: 'À Vista'
+    }
+
+    //Act
+    await page.locator('input[name="order-id"]').fill(order.number)
+    await page.getByTestId('search-order-button').click()
+
+    //Assert
+    await expect(page.getByTestId(`order-result-${order.number}`)).toMatchAriaSnapshot(`
+      - img
+      - paragraph: Pedido
+      - paragraph: ${order.number}
+      - img
+      - text: ${order.status}
+      - img "Velô Sprint"
+      - paragraph: Modelo
+      - paragraph: Velô Sprint
+      - paragraph: Cor
+      - paragraph: ${order.color}
+      - paragraph: Interior
+      - paragraph: cream
+      - paragraph: Rodas
+      - paragraph: ${order.wheels}
+      - heading "Dados do Cliente" [level=4]
+      - paragraph: Nome
+      - paragraph: ${order.customer.name}
+      - paragraph: Email
+      - paragraph: ${order.customer.email}
+      - paragraph: Loja de Retirada
+      - paragraph
+      - paragraph: Data do Pedido
+      - paragraph: /\\d+\\/\\d+\\/\\d+/
+      - heading "Pagamento" [level=4]
+      - paragraph: ${order.payment}
+      - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
+      `)
   })
 
   test('Deve exibir mensagem de pedido não encontrado', async ({ page }) => {
@@ -72,12 +167,6 @@ test.describe('Consulta de Pedido', async () => {
     await page.getByRole('button', { name: 'Buscar Pedido' }).click()
 
     //Assert
-    //   const title = page.getByRole('heading', { name: 'Pedido não encontrado' })
-    //   await expect(title).toBeVisible()
-
-    //   const message = page.locator('p', { hasText: 'Verifique o número do pedido e tente novamente' })
-    //   await expect(message).toBeVisible()
-
     await expect(page.locator('#root')).toMatchAriaSnapshot(`
             - img
             - heading "Pedido não encontrado" [level=3]
