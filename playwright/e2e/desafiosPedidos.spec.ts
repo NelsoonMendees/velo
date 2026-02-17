@@ -15,7 +15,7 @@ test('Deve buscar um pedido aprovado', async ({ page }) => {
   //Assert
   await expect(page.getByTestId('order-result-id')).toContainText('VLO-351NPI', { timeout: 10_000 })
   await expect(page.getByTestId('order-result-status')).toContainText('APROVADO')
-  await expect(page.getByText('VLO-61GOR8')).toBeVisible()
+  await expect(page.getByText('VLO-351NPI')).toBeVisible()
 
   // const containerPedido = page
   //   .getByRole('paragraph')

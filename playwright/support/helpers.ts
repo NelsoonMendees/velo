@@ -1,3 +1,5 @@
+import { Page } from '@playwright/test'
+
 export function gerarCodigoPedido(prefixo = 'VLO', tamanho = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let sufixo = ''
