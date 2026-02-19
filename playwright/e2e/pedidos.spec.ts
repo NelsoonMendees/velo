@@ -1,21 +1,13 @@
-import { test } from '@playwright/test'
+import { test, expect } from '../support/fixtures'
 import { gerarCodigoPedido } from '../support/helpers'
-import { OrderLockupPage, OrderDetails } from '../support/pages/OrderLockupPage'
-import { HomePage } from '../support/pages/HomePage'
+import type { OrderDetails } from '../support/actions/orderLookupActions'
 
-test.describe('Consulta de Pedido', async () => {
-  let orderLockupPage: OrderLockupPage
-
-  test.beforeEach(async ({ page }) => {
-    const homePage = new HomePage(page)
-    await homePage.goto()
-    await homePage.goToOrderLookup()
-
-    orderLockupPage = new OrderLockupPage(page)
+test.describe('Consulta de Pedido', () => {
+  test.beforeEach(async ({ app }) => {
+    await app.orderLookup.open()
   })
 
-  test('Deve buscar um pedido aprovado', async ({ page }) => {
-    //test data
+  test('Deve buscar um pedido aprovado', async ({ app }) => {
     const order: OrderDetails = {
       number: 'VLO-351NPI',
       status: 'APROVADO' as const,
@@ -28,11 +20,11 @@ test.describe('Consulta de Pedido', async () => {
       payment: 'À Vista'
     }
 
-    await orderLockupPage.searchOrder(order.number)
-    await orderLockupPage.validateOrderDetails(order)
+    await app.orderLookup.searchOrder(order.number)
+    await app.orderLookup.validateOrderDetails(order)
   })
 
-  test('Deve buscar um pedido reprovado', async ({ page }) => {
+  test('Deve buscar um pedido reprovado', async ({ app }) => {
     const order: OrderDetails = {
       number: 'VLO-OEZV0T',
       status: 'REPROVADO' as const,
@@ -45,11 +37,11 @@ test.describe('Consulta de Pedido', async () => {
       payment: 'À Vista'
     }
 
-    await orderLockupPage.searchOrder(order.number)
-    await orderLockupPage.validateOrderDetails(order)
+    await app.orderLookup.searchOrder(order.number)
+    await app.orderLookup.validateOrderDetails(order)
   })
 
-  test('Deve buscar um pedido em analise', async ({ page }) => {
+  test('Deve buscar um pedido em analise', async ({ app }) => {
     const order: OrderDetails = {
       number: 'VLO-FK02OY',
       status: 'EM_ANALISE' as const,
@@ -62,19 +54,19 @@ test.describe('Consulta de Pedido', async () => {
       payment: 'À Vista'
     }
 
-    await orderLockupPage.searchOrder(order.number)
-    await orderLockupPage.validateOrderDetails(order)
+    await app.orderLookup.searchOrder(order.number)
+    await app.orderLookup.validateOrderDetails(order)
   })
 
-  test('Deve exibir mensagem de pedido não encontrado', async ({ page }) => {
+  test('Deve exibir mensagem de pedido não encontrado', async ({ app }) => {
     const order = gerarCodigoPedido()
 
-    await orderLockupPage.searchOrder(order)
-    await orderLockupPage.validateOrderNotFoundMessage()
+    await app.orderLookup.searchOrder(order)
+    await app.orderLookup.validateOrderNotFoundMessage()
   })
 
-  test('Deve exibir mensagem de pedido não encontrado ao informar numero de pedido diferente do padrão', async ({ page }) => {
-    await orderLockupPage.searchOrder('ABC1234')
-    await orderLockupPage.validateOrderNotFoundMessage()
+  test('Deve exibir mensagem de pedido não encontrado ao informar numero de pedido diferente do padrão', async ({ app }) => {
+    await app.orderLookup.searchOrder('ABC1234')
+    await app.orderLookup.validateOrderNotFoundMessage()
   })
 })
