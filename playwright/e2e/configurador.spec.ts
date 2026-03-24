@@ -1,52 +1,31 @@
-import { test, expect } from '@playwright/test'
+import { test } from '../support/fixtures'
 
-test.describe('Configurador (/configure) - regras de preço e preview', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/configure')
-    await expect(page).toHaveURL(/\/configure$/)
+test.describe('Configurador de Veículo', () => {
+  test.beforeEach(async ({ app }) => {
+    await app.configurator.open()
   })
 
-  test('ao selecionar "Lunar White" deve manter o preço base (R$ 40.000,00) e atualizar o preview', async ({ page }) => {
-    const previewImage = page.getByRole('img', { name: /Velô Sprint/i }).first()
-    const priceSection = page.getByText('Preço de Venda').locator('..')
-    const car = page.locator('img[alt^="Velô Sprint"]')
+  test('deve atualizar o preview sem alterar o preço ao trocar a cor', async ({ app }) => {
+    await app.configurator.validatePrice('R$ 40.000,00')
 
-    // Checkpoint: estado inicial
-    await expect(priceSection.getByText('R$ 40.000,00')).toBeVisible()
-    await expect(previewImage).toHaveAttribute('alt', /aero wheels/i)
+    await app.configurator.selectColor('midnight-black')
+    await app.configurator.validatePreview('midnight-black', 'aero')
+    await app.configurator.validatePrice('R$ 40.000,00')
 
-    // Act: trocar cor (não altera preço)
-    await page.getByRole('button', { name: 'Lunar White' }).click()
-
-    // Assert: preview muda e preço permanece
-    await expect(car).toHaveAttribute('src', '/src/assets/lunar-white-aero-wheels.png')
-    await expect(previewImage).toHaveAttribute('alt', /lunar-white/i)
-    await expect(priceSection.getByText('R$ 40.000,00')).toBeVisible()
+    await app.configurator.selectColor('lunar-white')
+    await app.configurator.validatePreview('lunar-white', 'aero')
+    await app.configurator.validatePrice('R$ 40.000,00')
   })
 
-  test('ao selecionar "Sport Wheels" deve somar +R$ 2.000 (R$ 42.000,00) e ao voltar "Aero Wheels" retornar ao base', async ({ page }) => {
-    const previewImage = page.getByRole('img', { name: /Velô Sprint/i }).first()
-    const priceSection = page.getByText('Preço de Venda').locator('..')
-    const car = page.locator('img[alt^="Velô Sprint"]')
+  test('deve acrescer R$ 2.000,00 ao selecionar Sport Wheels e reverter ao voltar para Aero Wheels', async ({ app }) => {
+    await app.configurator.validatePrice('R$ 40.000,00')
 
-    // Checkpoint: estado inicial
-    await expect(priceSection.getByText('R$ 40.000,00')).toBeVisible()
-    await expect(previewImage).toHaveAttribute('alt', /aero wheels/i)
+    await app.configurator.selectWheels('sport')
+    await app.configurator.validatePreview('glacier-blue', 'sport')
+    await app.configurator.validatePrice('R$ 42.000,00')
 
-    // Act: selecionar Sport Wheels (+ R$ 2.000,00)
-    await page.getByRole('button', { name: /Sport Wheels/i }).click()
-
-    // Checkpoint: preço atualizado e preview com sport
-    await expect(car).toHaveAttribute('src', '/src/assets/glacier-blue-sport-wheels.png')
-    await expect(priceSection.getByText('R$ 42.000,00')).toBeVisible()
-    await expect(previewImage).toHaveAttribute('alt', /sport wheels/i)
-
-    // Act: voltar para Aero Wheels
-    await page.getByRole('button', { name: /Aero Wheels/i }).click()
-
-    // Assert: retorna ao preço base
-    await expect(car).toHaveAttribute('src', '/src/assets/glacier-blue-aero-wheels.png')
-    await expect(priceSection.getByText('R$ 40.000,00')).toBeVisible()
-    await expect(previewImage).toHaveAttribute('alt', /aero wheels/i)
+    await app.configurator.selectWheels('aero')
+    await app.configurator.validatePreview('glacier-blue', 'aero')
+    await app.configurator.validatePrice('R$ 40.000,00')
   })
 })
