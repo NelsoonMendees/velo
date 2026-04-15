@@ -1,61 +1,40 @@
 import { test, expect } from '../support/fixtures'
 import { gerarCodigoPedido } from '../support/helpers'
-import type { OrderDetails } from '../support/actions/orderLookupActions'
+import { TEST_ORDERS } from '../support/database/orderFactory'
 
 test.describe('Consulta de Pedido', () => {
   test.beforeEach(async ({ app }) => {
     await app.orderLookup.open()
   })
 
-  test('Deve buscar um pedido aprovado', async ({ app }) => {
-    const order: OrderDetails = {
-      number: 'VLO-351NPI',
-      status: 'APROVADO' as const,
-      color: 'Midnight Black',
-      wheels: 'sport Wheels',
-      customer: {
-        name: 'Nelson Mendes',
-        email: 'nelson_mendes@live.com'
-      },
-      payment: 'À Vista'
-    }
+  test('Deve buscar um pedido aprovado', async ({ app, orders }) => {
+    const { db: orderDb, details } = TEST_ORDERS.APROVADO
 
-    await app.orderLookup.searchOrder(order.number)
-    await app.orderLookup.validateOrderDetails(order)
+    await orders.deleteByNumber(details.number)
+    await orders.insert(orderDb)
+
+    await app.orderLookup.searchOrder(details.number)
+    await app.orderLookup.validateOrderDetails(details)
   })
 
-  test('Deve buscar um pedido reprovado', async ({ app }) => {
-    const order: OrderDetails = {
-      number: 'VLO-OEZV0T',
-      status: 'REPROVADO' as const,
-      color: 'Lunar White',
-      wheels: 'sport Wheels',
-      customer: {
-        name: 'Lorraine Crispim',
-        email: 'lorrainecrispim20@outlook.com'
-      },
-      payment: 'À Vista'
-    }
+  test('Deve buscar um pedido reprovado', async ({ app, orders }) => {
+    const { db: orderDb, details } = TEST_ORDERS.REPROVADO
 
-    await app.orderLookup.searchOrder(order.number)
-    await app.orderLookup.validateOrderDetails(order)
+    await orders.deleteByNumber(details.number)
+    await orders.insert(orderDb)
+
+    await app.orderLookup.searchOrder(details.number)
+    await app.orderLookup.validateOrderDetails(details)
   })
 
-  test('Deve buscar um pedido em analise', async ({ app }) => {
-    const order: OrderDetails = {
-      number: 'VLO-FK02OY',
-      status: 'EM_ANALISE' as const,
-      color: 'Glacier Blue',
-      wheels: 'aero Wheels',
-      customer: {
-        name: 'Fernanda Karolina',
-        email: 'fernanda@qa.com'
-      },
-      payment: 'À Vista'
-    }
+  test('Deve buscar um pedido em analise', async ({ app, orders }) => {
+    const { db: orderDb, details } = TEST_ORDERS.EM_ANALISE
 
-    await app.orderLookup.searchOrder(order.number)
-    await app.orderLookup.validateOrderDetails(order)
+    await orders.deleteByNumber(details.number)
+    await orders.insert(orderDb)
+
+    await app.orderLookup.searchOrder(details.number)
+    await app.orderLookup.validateOrderDetails(details)
   })
 
   test('Deve exibir mensagem de pedido não encontrado', async ({ app }) => {

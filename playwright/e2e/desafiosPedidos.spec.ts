@@ -9,13 +9,13 @@ test('Deve buscar um pedido aprovado', async ({ page }) => {
   await expect(page.getByRole('heading')).toContainText('Consultar Pedido')
 
   //Act
-  await page.locator('input[name="order-id"]').fill('VLO-351NPI')
+  await page.locator('input[name="order-id"]').fill('VLO-0QFA6A')
   await page.getByTestId('search-order-button').click()
 
   //Assert
-  await expect(page.getByTestId('order-result-id')).toContainText('VLO-351NPI', { timeout: 10_000 })
+  await expect(page.getByTestId('order-result-id')).toContainText('VLO-0QFA6A', { timeout: 10_000 })
   await expect(page.getByTestId('order-result-status')).toContainText('APROVADO')
-  await expect(page.getByText('VLO-351NPI')).toBeVisible()
+  await expect(page.getByText('VLO-0QFA6A')).toBeVisible()
 
   // const containerPedido = page
   //   .getByRole('paragraph')
