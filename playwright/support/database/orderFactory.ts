@@ -108,6 +108,10 @@ export async function deleteOrderByNumber(db: Kysely<Database>, orderNumber: str
   await db.deleteFrom('orders').where('order_number', '=', orderNumber).execute()
 }
 
+export async function deleteOrdersByCpf(db: Kysely<Database>, cpf: string): Promise<void> {
+  await db.deleteFrom('orders').where('customer_cpf', '=', cpf).execute()
+}
+
 export async function deleteTestOrders(db: Kysely<Database>): Promise<void> {
   const orderNumbers = Object.values(TEST_ORDERS).map((o) => o.db.order_number as string)
   await db.deleteFrom('orders').where('order_number', 'in', orderNumbers).execute()

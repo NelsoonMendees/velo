@@ -1,61 +1,79 @@
-import { test, expect } from '../support/fixtures'
+import { test } from '../support/fixtures'
+import { DEFAULT_VALID_DATA } from '../support/actions/checkoutActions'
+
+test.describe('CT05 - Checkout e Confirmação - Pagamento À Vista (Fluxo Feliz)', () => {
+  test.beforeEach(async ({ app }) => {
+    await app.configurator.open()
+    await app.configurator.goToCheckout()
+  })
+
+  test('Deve criar pedido aprovado ao pagar à vista com dados válidos', async ({ app, orders }) => {
+    await orders.deleteByCpf(DEFAULT_VALID_DATA.cpf)
+
+    // Pré-condição: preço base R$ 40.000,00 persistido do configurador
+    await app.checkout.expectSummaryTotal('R$ 40.000,00')
+
+    // Passo 1: preencher formulário com dados válidos e selecionar loja
+    await app.checkout.fillForm()
+
+    // Passo 2: selecionar aba À Vista e verificar valor exibido
+    await app.checkout.selectPaymentMethod('avista')
+    await app.checkout.expectSummaryTotal('R$ 40.000,00')
+
+    // Passo 3: confirmar pedido
+    await app.checkout.submit()
+
+    // Passo 4: verificar página de confirmação
+    await app.success.expectStatus('APROVADO')
+    await app.success.expectOrderNumber()
+    await app.success.expectCustomerName(`${DEFAULT_VALID_DATA.name} ${DEFAULT_VALID_DATA.surname}`)
+    await app.success.expectCustomerEmail(DEFAULT_VALID_DATA.email)
+  })
+})
 
 test.describe('CT04 - Checkout - Validação de Campos Obrigatórios e Dados Inválidos', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/order')
+  test.beforeEach(async ({ app }) => {
+    await app.checkout.open()
   })
 
-  test('Deve exibir erros em todos os campos ao confirmar com formulário vazio', async ({ page }) => {
-    await page.getByTestId('checkout-submit').click()
+  test('Deve exibir erros em todos os campos ao confirmar com formulário vazio', async ({ app }) => {
+    await app.checkout.submit()
 
-    await expect(page.locator('//label[text()="Nome"]/..//p')).toHaveText('Nome deve ter pelo menos 2 caracteres')
-    await expect(page.locator('//label[text()="Sobrenome"]/..//p')).toHaveText('Sobrenome deve ter pelo menos 2 caracteres')
-    await expect(page.locator('//label[text()="Email"]/..//p')).toHaveText('Email inválido')
-    await expect(page.locator('//label[text()="Telefone"]/..//p')).toHaveText('Telefone inválido')
-    await expect(page.locator('//label[text()="CPF"]/..//p')).toHaveText('CPF inválido')
-    await expect(page.locator('//label[text()="Loja para Retirada"]/..//p')).toHaveText('Selecione uma loja')
-    await expect(page.locator('p', { hasText: 'Aceite os termos' })).toHaveText('Aceite os termos')
+    await app.checkout.expectFieldError('name', 'Nome deve ter pelo menos 2 caracteres')
+    await app.checkout.expectFieldError('surname', 'Sobrenome deve ter pelo menos 2 caracteres')
+    await app.checkout.expectFieldError('email', 'Email inválido')
+    await app.checkout.expectFieldError('phone', 'Telefone inválido')
+    await app.checkout.expectFieldError('cpf', 'CPF inválido')
+    await app.checkout.expectFieldError('store', 'Selecione uma loja')
+    await app.checkout.expectFieldError('terms', 'Aceite os termos')
   })
 
-  test('Deve exibir erro ao informar apenas 1 caractere em Nome e Sobrenome', async ({ page }) => {
-    await page.getByTestId('checkout-name').fill('A')
-    await page.getByTestId('checkout-surname').fill('B')
-    await page.getByTestId('checkout-submit').click()
-    
-    await expect(page.locator('//label[text()="Nome"]/..//p')).toHaveText('Nome deve ter pelo menos 2 caracteres')
-    await expect(page.locator('//label[text()="Sobrenome"]/..//p')).toHaveText('Sobrenome deve ter pelo menos 2 caracteres')
+  test('Deve exibir erro ao informar apenas 1 caractere em Nome e Sobrenome', async ({ app }) => {
+    await app.checkout.fillForm({ name: 'A', surname: 'B' })
+    await app.checkout.submit()
+
+    await app.checkout.expectFieldError('name', 'Nome deve ter pelo menos 2 caracteres')
+    await app.checkout.expectFieldError('surname', 'Sobrenome deve ter pelo menos 2 caracteres')
   })
 
-  test('Deve exibir erro ao deixar o campo email vazio', async ({ page }) => {
-    await page.getByTestId('checkout-name').fill('Nelson')
-    await page.getByTestId('checkout-surname').fill('Mendes')
-    await page.getByTestId('checkout-phone').fill('(11) 99999-0001')
-    await page.getByTestId('checkout-cpf').fill('000.000.000-01')
-    await page.getByTestId('checkout-submit').click()
+  test('Deve exibir erro ao deixar o campo email vazio', async ({ app }) => {
+    await app.checkout.fillForm({ email: '' })
+    await app.checkout.submit()
 
-    await expect(page.locator('//label[text()="Email"]/..//p')).toHaveText('Email inválido')
+    await app.checkout.expectFieldError('email', 'Email inválido')
   })
 
-  test('Deve exibir erro ao deixar o campo CPF vazio', async ({ page }) => {
-    await page.getByTestId('checkout-name').fill('Nelson')
-    await page.getByTestId('checkout-surname').fill('Mendes')
-    await page.getByTestId('checkout-email').fill('nelson@email.com')
-    await page.getByTestId('checkout-phone').fill('(11) 99999-0001')
-    await page.getByTestId('checkout-submit').click()
+  test('Deve exibir erro ao deixar o campo CPF vazio', async ({ app }) => {
+    await app.checkout.fillForm({ cpf: '' })
+    await app.checkout.submit()
 
-    await expect(page.locator('//label[text()="CPF"]/..//p')).toHaveText('CPF inválido')
+    await app.checkout.expectFieldError('cpf', 'CPF inválido')
   })
 
-  test('Deve exibir erro ao não aceitar os Termos de Uso', async ({ page }) => {
-    await page.getByTestId('checkout-name').fill('Nelson')
-    await page.getByTestId('checkout-surname').fill('Mendes')
-    await page.getByTestId('checkout-email').fill('nelson@email.com')
-    await page.getByTestId('checkout-phone').fill('(11) 99999-0001')
-    await page.getByTestId('checkout-cpf').fill('000.000.000-01')
-    await page.getByTestId('checkout-store').click()
-    await page.getByRole('option', { name: 'Velô Paulista - Av. Paulista,' }).click()
-    await page.getByTestId('checkout-submit').click()
+  test('Deve exibir erro ao não aceitar os Termos de Uso', async ({ app }) => {
+    await app.checkout.fillForm({ acceptTerms: false })
+    await app.checkout.submit()
 
-    await expect(page.locator('p', { hasText: 'Aceite os termos' })).toHaveText('Aceite os termos')
+    await app.checkout.expectFieldError('terms', 'Aceite os termos')
   })
 })
