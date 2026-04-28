@@ -2,6 +2,8 @@ import { Page, expect } from '@playwright/test'
 
 type CheckoutField = 'name' | 'surname' | 'email' | 'phone' | 'cpf' | 'store' | 'terms'
 
+export type PaymentMethod = 'avista' | 'financiamento'
+
 export type CheckoutFormData = {
   name?: string
   surname?: string
@@ -12,7 +14,7 @@ export type CheckoutFormData = {
   acceptTerms?: boolean
 }
 
-export const DEFAULT_VALID_DATA: Required<CheckoutFormData> = {
+const DEFAULT_VALID_DATA: Required<CheckoutFormData> = {
   name: 'Nelson',
   surname: 'Mendes',
   email: 'nelson@email.com',
@@ -51,7 +53,7 @@ export function createCheckoutActions(page: Page) {
       await page.getByTestId('checkout-submit').click()
     },
 
-    async selectPaymentMethod(method: 'avista' | 'financiamento') {
+    async selectPaymentMethod(method: PaymentMethod) {
       await page.getByTestId(`payment-${method}`).click()
     },
 

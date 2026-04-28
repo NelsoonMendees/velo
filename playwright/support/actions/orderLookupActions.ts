@@ -1,14 +1,16 @@
 import { Page, expect } from '@playwright/test'
 
-type OrderStatus = 'APROVADO' | 'REPROVADO' | 'EM_ANALISE'
+export type OrderStatus = 'APROVADO' | 'REPROVADO' | 'EM_ANALISE'
 
 export type OrderDetails = {
   number: string
   status: OrderStatus
   color: string
   wheels: string
-  customer: { name: string; email: string }
+  customerName: string
+  customerEmail: string
   payment: string
+  totalPrice: string
 }
 
 const statusClasses = {
@@ -60,16 +62,16 @@ export function createOrderLookupActions(page: Page) {
       - paragraph: ${order.wheels}
       - heading "Dados do Cliente" [level=4]
       - paragraph: Nome
-      - paragraph: ${order.customer.name}
+      - paragraph: ${order.customerName}
       - paragraph: Email
-      - paragraph: ${order.customer.email}
+      - paragraph: ${order.customerEmail}
       - paragraph: Loja de Retirada
       - paragraph
       - paragraph: Data do Pedido
       - paragraph: /\\d+\\/\\d+\\/\\d+/
       - heading "Pagamento" [level=4]
       - paragraph: ${order.payment}
-      - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
+      - paragraph: ${order.totalPrice}
       `)
 
       const [bgClass, textClass, iconClass] = statusClasses[order.status]

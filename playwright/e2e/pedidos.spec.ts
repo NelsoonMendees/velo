@@ -1,6 +1,6 @@
 import { test, expect } from '../support/fixtures'
 import { gerarCodigoPedido } from '../support/helpers'
-import { TEST_ORDERS } from '../support/database/orderFactory'
+import { buildOrder } from '../support/database/orderFactory'
 
 test.describe('Consulta de Pedido', () => {
   test.beforeEach(async ({ app }) => {
@@ -8,33 +8,66 @@ test.describe('Consulta de Pedido', () => {
   })
 
   test('Deve buscar um pedido aprovado', async ({ app, orders }) => {
-    const { db: orderDb, details } = TEST_ORDERS.APROVADO
+    const customer = buildOrder({
+      number: 'VLO-SE4R01',
+      status: 'APROVADO',
+      customerName: 'Nelson Mendes',
+      customerEmail: 'nelson_mendes@live.com',
+      customerPhone: '(11) 99999-0001',
+      customerCpf: '000.000.000-01',
+      color: { db: 'midnight-black', display: 'Midnight Black' },
+      wheels: { db: 'sport', display: 'sport Wheels' },
+      payment: { db: 'avista', display: 'À Vista' },
+      totalPrice: { db: 40000, display: 'R$ 40.000,00' }
+    })
 
-    await orders.deleteByNumber(details.number)
-    await orders.insert(orderDb)
+    await orders.deleteByNumber(customer.details.number)
+    await orders.insert(customer.db)
 
-    await app.orderLookup.searchOrder(details.number)
-    await app.orderLookup.validateOrderDetails(details)
+    await app.orderLookup.searchOrder(customer.details.number)
+    await app.orderLookup.validateOrderDetails(customer.details)
   })
 
   test('Deve buscar um pedido reprovado', async ({ app, orders }) => {
-    const { db: orderDb, details } = TEST_ORDERS.REPROVADO
+    const customer = buildOrder({
+      number: 'VLO-SE4R02',
+      status: 'REPROVADO',
+      customerName: 'Lorraine Crispim',
+      customerEmail: 'lorrainecrispim20@outlook.com',
+      customerPhone: '(11) 99999-0002',
+      customerCpf: '000.000.000-02',
+      color: { db: 'lunar-white', display: 'Lunar White' },
+      wheels: { db: 'sport', display: 'sport Wheels' },
+      payment: { db: 'avista', display: 'À Vista' },
+      totalPrice: { db: 40000, display: 'R$ 40.000,00' }
+    })
 
-    await orders.deleteByNumber(details.number)
-    await orders.insert(orderDb)
+    await orders.deleteByNumber(customer.details.number)
+    await orders.insert(customer.db)
 
-    await app.orderLookup.searchOrder(details.number)
-    await app.orderLookup.validateOrderDetails(details)
+    await app.orderLookup.searchOrder(customer.details.number)
+    await app.orderLookup.validateOrderDetails(customer.details)
   })
 
   test('Deve buscar um pedido em analise', async ({ app, orders }) => {
-    const { db: orderDb, details } = TEST_ORDERS.EM_ANALISE
+    const customer = buildOrder({
+      number: 'VLO-SE4R03',
+      status: 'EM_ANALISE',
+      customerName: 'Fernanda Karolina',
+      customerEmail: 'fernanda@qa.com',
+      customerPhone: '(62) 98888-4444',
+      customerCpf: '736.649.410-04',
+      color: { db: 'glacier-blue', display: 'Glacier Blue' },
+      wheels: { db: 'aero', display: 'aero Wheels' },
+      payment: { db: 'avista', display: 'À Vista' },
+      totalPrice: { db: 40000, display: 'R$ 40.000,00' }
+    })
 
-    await orders.deleteByNumber(details.number)
-    await orders.insert(orderDb)
+    await orders.deleteByNumber(customer.details.number)
+    await orders.insert(customer.db)
 
-    await app.orderLookup.searchOrder(details.number)
-    await app.orderLookup.validateOrderDetails(details)
+    await app.orderLookup.searchOrder(customer.details.number)
+    await app.orderLookup.validateOrderDetails(customer.details)
   })
 
   test('Deve exibir mensagem de pedido não encontrado', async ({ app }) => {

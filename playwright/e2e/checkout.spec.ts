@@ -1,5 +1,6 @@
 import { test } from '../support/fixtures'
-import { DEFAULT_VALID_DATA } from '../support/actions/checkoutActions'
+import type { PaymentMethod } from '../support/actions/checkoutActions'
+import type { SuccessStatus } from '../support/actions/successActions'
 
 test.describe('CT05 - Checkout e Confirmação - Pagamento À Vista (Fluxo Feliz)', () => {
   test.beforeEach(async ({ app }) => {
@@ -8,26 +9,77 @@ test.describe('CT05 - Checkout e Confirmação - Pagamento À Vista (Fluxo Feliz
   })
 
   test('Deve criar pedido aprovado ao pagar à vista com dados válidos', async ({ app, orders }) => {
-    await orders.deleteByCpf(DEFAULT_VALID_DATA.cpf)
+    const customer = {
+      name: 'Nelson',
+      surname: 'Mendes',
+      email: 'nelson@email.com',
+      phone: '(11) 99999-0001',
+      cpf: '529.982.247-25',
+      store: 'Velô Paulista - Av. Paulista,',
+      acceptTerms: true,
+      paymentMethod: 'avista' as PaymentMethod,
+      totalPrice: 'R$ 40.000,00',
+      status: 'APROVADO' as SuccessStatus
+    }
+
+    await orders.deleteByCpf(customer.cpf)
 
     // Pré-condição: preço base R$ 40.000,00 persistido do configurador
-    await app.checkout.expectSummaryTotal('R$ 40.000,00')
+    await app.checkout.expectSummaryTotal(customer.totalPrice)
 
     // Passo 1: preencher formulário com dados válidos e selecionar loja
-    await app.checkout.fillForm()
+    await app.checkout.fillForm(customer)
 
     // Passo 2: selecionar aba À Vista e verificar valor exibido
-    await app.checkout.selectPaymentMethod('avista')
-    await app.checkout.expectSummaryTotal('R$ 40.000,00')
+    await app.checkout.selectPaymentMethod(customer.paymentMethod)
+    await app.checkout.expectSummaryTotal(customer.totalPrice)
 
     // Passo 3: confirmar pedido
     await app.checkout.submit()
 
     // Passo 4: verificar página de confirmação
-    await app.success.expectStatus('APROVADO')
+    await app.success.expectStatus(customer.status)
     await app.success.expectOrderNumber()
-    await app.success.expectCustomerName(`${DEFAULT_VALID_DATA.name} ${DEFAULT_VALID_DATA.surname}`)
-    await app.success.expectCustomerEmail(DEFAULT_VALID_DATA.email)
+    await app.success.expectCustomerName(`${customer.name} ${customer.surname}`)
+    await app.success.expectCustomerEmail(customer.email)
+  })
+
+  test('Deve aprovar automaticamente o crédito quando o score do CPF for maior que 700 no financiamento.', async ({ page, app, orders }) => {
+    const customer = {
+      name: 'Matheus',
+      surname: 'Lucas',
+      email: 'matheus.lucas@email.com',
+      phone: '(11) 98282-1201',
+      cpf: '523.922.347-35',
+      store: 'Velô Paulista - Av. Paulista,',
+      acceptTerms: true,
+      paymentMethod: 'financiamento' as PaymentMethod,
+      totalPrice: 'R$ 40.800,00',
+      status: 'APROVADO' as SuccessStatus
+    }
+
+    await page.route('**/functions/v1/credit-analysis', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'Done', score: 750 })
+      })
+    })
+
+    await orders.deleteByCpf(customer.cpf)
+
+    // Passo 1: preencher formulário com dados válidos e selecionar loja
+    await app.checkout.fillForm(customer)
+
+    // Passo 2: selecionar aba À Vista e verificar valor exibido
+    await app.checkout.selectPaymentMethod(customer.paymentMethod)
+    await app.checkout.expectSummaryTotal(customer.totalPrice)
+
+    // Passo 3: confirmar pedido
+    await app.checkout.submit()
+
+    // Passo 4: verificar página de confirmação
+    await app.success.expectStatus(customer.status)
   })
 })
 

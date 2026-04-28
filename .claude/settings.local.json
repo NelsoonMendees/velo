@@ -6,7 +6,8 @@
       "mcp__playwright__browser_fill_form",
       "Bash(npx playwright:*)",
       "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_type"
+      "mcp__playwright__browser_type",
+      "Bash(npx tsc *)"
     ]
   }
 }

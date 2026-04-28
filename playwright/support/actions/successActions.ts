@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test'
 
-type SuccessStatus = 'APROVADO' | 'REPROVADO'
+export type SuccessStatus = 'APROVADO' | 'REPROVADO'
 
 const statusText: Record<SuccessStatus, string> = {
   APROVADO: 'Pedido Aprovado!',
