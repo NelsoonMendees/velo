@@ -2,13 +2,13 @@ import { test } from '../support/fixtures'
 import type { PaymentMethod } from '../support/actions/checkoutActions'
 import type { SuccessStatus } from '../support/actions/successActions'
 
-test.describe('CT05 - Checkout e Confirmação - Pagamento À Vista (Fluxo Feliz)', () => {
+test.describe('Checkout e Confirmação - Fluxos de Pagamento', () => {
   test.beforeEach(async ({ app }) => {
     await app.configurator.open()
     await app.configurator.goToCheckout()
   })
 
-  test('Deve criar pedido aprovado ao pagar à vista com dados válidos', async ({ app, orders }) => {
+  test('CT05 - Deve criar pedido aprovado ao pagar à vista com dados válidos', async ({ app, orders }) => {
     const customer = {
       name: 'Nelson',
       surname: 'Mendes',
@@ -24,27 +24,21 @@ test.describe('CT05 - Checkout e Confirmação - Pagamento À Vista (Fluxo Feliz
 
     await orders.deleteByCpf(customer.cpf)
 
-    // Pré-condição: preço base R$ 40.000,00 persistido do configurador
+    // Pré-condição: preço base persistido do configurador
     await app.checkout.expectSummaryTotal(customer.totalPrice)
 
-    // Passo 1: preencher formulário com dados válidos e selecionar loja
     await app.checkout.fillForm(customer)
-
-    // Passo 2: selecionar aba À Vista e verificar valor exibido
     await app.checkout.selectPaymentMethod(customer.paymentMethod)
     await app.checkout.expectSummaryTotal(customer.totalPrice)
-
-    // Passo 3: confirmar pedido
     await app.checkout.submit()
 
-    // Passo 4: verificar página de confirmação
     await app.success.expectStatus(customer.status)
     await app.success.expectOrderNumber()
     await app.success.expectCustomerName(`${customer.name} ${customer.surname}`)
     await app.success.expectCustomerEmail(customer.email)
   })
 
-  test('Deve aprovar automaticamente o crédito quando o score do CPF for maior que 700 no financiamento.', async ({ page, app, orders }) => {
+  test('CT06 - Deve aprovar automaticamente o crédito quando o score do CPF for maior que 700 no financiamento', async ({ page, app, orders }) => {
     const customer = {
       name: 'Matheus',
       surname: 'Lucas',
@@ -68,17 +62,43 @@ test.describe('CT05 - Checkout e Confirmação - Pagamento À Vista (Fluxo Feliz
 
     await orders.deleteByCpf(customer.cpf)
 
-    // Passo 1: preencher formulário com dados válidos e selecionar loja
     await app.checkout.fillForm(customer)
-
-    // Passo 2: selecionar aba À Vista e verificar valor exibido
     await app.checkout.selectPaymentMethod(customer.paymentMethod)
     await app.checkout.expectSummaryTotal(customer.totalPrice)
-
-    // Passo 3: confirmar pedido
     await app.checkout.submit()
 
-    // Passo 4: verificar página de confirmação
+    await app.success.expectStatus(customer.status)
+  })
+
+  test('CT07 - Deve colocar pedido em análise quando o score do CPF estiver entre 501 e 700', async ({ page, app, orders }) => {
+    const customer = {
+      name: 'Ana',
+      surname: 'Carvalho',
+      email: 'ana.carvalho@email.com',
+      phone: '(21) 97654-3210',
+      cpf: '413.754.880-08',
+      store: 'Velô Paulista - Av. Paulista,',
+      acceptTerms: true,
+      paymentMethod: 'financiamento' as PaymentMethod,
+      totalPrice: 'R$ 40.800,00',
+      status: 'EM_ANALISE' as SuccessStatus
+    }
+
+    await page.route('**/functions/v1/credit-analysis', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'Done', score: 600 })
+      })
+    })
+
+    await orders.deleteByCpf(customer.cpf)
+
+    await app.checkout.fillForm(customer)
+    await app.checkout.selectPaymentMethod(customer.paymentMethod)
+    await app.checkout.expectSummaryTotal(customer.totalPrice)
+    await app.checkout.submit()
+
     await app.success.expectStatus(customer.status)
   })
 })

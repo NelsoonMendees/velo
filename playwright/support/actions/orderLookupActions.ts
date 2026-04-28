@@ -81,6 +81,13 @@ export function createOrderLookupActions(page: Page) {
       await expect(statusBadge.locator('svg')).toHaveClass(new RegExp(iconClass))
     },
 
+    async validateOrderStatus(status: OrderStatus) {
+      const [bgClass, textClass] = statusClasses[status]
+      const statusBadge = page.getByRole('status').filter({ hasText: status })
+      await expect(statusBadge).toHaveClass(new RegExp(bgClass))
+      await expect(statusBadge).toHaveClass(new RegExp(textClass))
+    },
+
     async validateOrderNotFoundMessage() {
       await expect(page.locator('#root')).toMatchAriaSnapshot(`
       - img

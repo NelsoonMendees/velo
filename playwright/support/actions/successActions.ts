@@ -1,10 +1,11 @@
 import { Page, expect } from '@playwright/test'
 
-export type SuccessStatus = 'APROVADO' | 'REPROVADO'
+export type SuccessStatus = 'APROVADO' | 'REPROVADO' | 'EM_ANALISE'
 
 const statusText: Record<SuccessStatus, string> = {
   APROVADO: 'Pedido Aprovado!',
   REPROVADO: 'Crédito Reprovado',
+  EM_ANALISE: 'Pedido em Análise',
 }
 
 export function createSuccessActions(page: Page) {
