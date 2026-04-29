@@ -53,6 +53,16 @@ export function createCheckoutActions(page: Page) {
       await page.getByTestId('checkout-submit').click()
     },
 
+    async mockCreditAnalysis(score: number) {
+      await page.route('**/functions/v1/credit-analysis', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ status: 'Done', score })
+        })
+      })
+    },
+
     async selectPaymentMethod(method: PaymentMethod) {
       await page.getByTestId(`payment-${method}`).click()
     },

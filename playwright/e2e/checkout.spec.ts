@@ -1,6 +1,8 @@
 import { test } from '../support/fixtures'
 import type { PaymentMethod } from '../support/actions/checkoutActions'
 import type { SuccessStatus } from '../support/actions/successActions'
+import { runFinancingScenario } from '../support/helpers'
+import type { FinancingCustomer } from '../support/helpers'
 
 test.describe('Checkout e Confirmação - Fluxos de Pagamento', () => {
   test.beforeEach(async ({ app }) => {
@@ -38,8 +40,8 @@ test.describe('Checkout e Confirmação - Fluxos de Pagamento', () => {
     await app.success.expectCustomerEmail(customer.email)
   })
 
-  test('CT06 - Deve aprovar automaticamente o crédito quando o score do CPF for maior que 700 no financiamento', async ({ page, app, orders }) => {
-    const customer = {
+  test('CT06 - Deve aprovar automaticamente o crédito quando o score do CPF for maior que 700 no financiamento', async ({ app, orders }) => {
+    const customer: FinancingCustomer = {
       name: 'Matheus',
       surname: 'Lucas',
       email: 'matheus.lucas@email.com',
@@ -47,31 +49,16 @@ test.describe('Checkout e Confirmação - Fluxos de Pagamento', () => {
       cpf: '523.922.347-35',
       store: 'Velô Paulista - Av. Paulista,',
       acceptTerms: true,
-      paymentMethod: 'financiamento' as PaymentMethod,
+      paymentMethod: 'financiamento',
       totalPrice: 'R$ 40.800,00',
-      status: 'APROVADO' as SuccessStatus
+      status: 'APROVADO'
     }
 
-    await page.route('**/functions/v1/credit-analysis', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ status: 'Done', score: 750 })
-      })
-    })
-
-    await orders.deleteByCpf(customer.cpf)
-
-    await app.checkout.fillForm(customer)
-    await app.checkout.selectPaymentMethod(customer.paymentMethod)
-    await app.checkout.expectSummaryTotal(customer.totalPrice)
-    await app.checkout.submit()
-
-    await app.success.expectStatus(customer.status)
+    await runFinancingScenario({ app, orders }, customer, 750)
   })
 
-  test('CT07 - Deve colocar pedido em análise quando o score do CPF estiver entre 501 e 700', async ({ page, app, orders }) => {
-    const customer = {
+  test('CT07 - Deve colocar pedido em análise quando o score do CPF estiver entre 501 e 700', async ({ app, orders }) => {
+    const customer: FinancingCustomer = {
       name: 'Ana',
       surname: 'Carvalho',
       email: 'ana.carvalho@email.com',
@@ -79,31 +66,16 @@ test.describe('Checkout e Confirmação - Fluxos de Pagamento', () => {
       cpf: '413.754.880-08',
       store: 'Velô Paulista - Av. Paulista,',
       acceptTerms: true,
-      paymentMethod: 'financiamento' as PaymentMethod,
+      paymentMethod: 'financiamento',
       totalPrice: 'R$ 40.800,00',
-      status: 'EM_ANALISE' as SuccessStatus
+      status: 'EM_ANALISE'
     }
 
-    await page.route('**/functions/v1/credit-analysis', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ status: 'Done', score: 600 })
-      })
-    })
-
-    await orders.deleteByCpf(customer.cpf)
-
-    await app.checkout.fillForm(customer)
-    await app.checkout.selectPaymentMethod(customer.paymentMethod)
-    await app.checkout.expectSummaryTotal(customer.totalPrice)
-    await app.checkout.submit()
-
-    await app.success.expectStatus(customer.status)
+    await runFinancingScenario({ app, orders }, customer, 600)
   })
 
-  test('CT08 - Deve reprovar o pedido quando o score for menor ou igual a 500 e a entrada for inferior a 50%', async ({ page, app, orders }) => {
-    const customer = {
+  test('CT08 - Deve reprovar o pedido quando o score for menor ou igual a 500 e a entrada for inferior a 50%', async ({ app, orders }) => {
+    const customer: FinancingCustomer = {
       name: 'Carlos',
       surname: 'Ferreira',
       email: 'carlos.ferreira@email.com',
@@ -111,28 +83,29 @@ test.describe('Checkout e Confirmação - Fluxos de Pagamento', () => {
       cpf: '111.444.777-35',
       store: 'Velô Paulista - Av. Paulista,',
       acceptTerms: true,
-      paymentMethod: 'financiamento' as PaymentMethod,
+      paymentMethod: 'financiamento',
       totalPrice: 'R$ 40.800,00',
-      status: 'REPROVADO' as SuccessStatus
+      status: 'REPROVADO'
     }
 
-    await page.route('**/functions/v1/credit-analysis', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ status: 'Done', score: 300 })
-      })
-    })
+    await runFinancingScenario({ app, orders }, customer, 300, '0')
+  })
 
-    await orders.deleteByCpf(customer.cpf)
+  test('CT09 - Deve aprovar o pedido quando a entrada for maior ou igual a 50% independente do score', async ({ app, orders }) => {
+    const customer: FinancingCustomer = {
+      name: 'Roberta',
+      surname: 'Lima',
+      email: 'roberta.lima@email.com',
+      phone: '(41) 92345-6789',
+      cpf: '432.120.987-08',
+      store: 'Velô Paulista - Av. Paulista,',
+      acceptTerms: true,
+      paymentMethod: 'financiamento',
+      totalPrice: 'R$ 20.400,00',
+      status: 'APROVADO'
+    }
 
-    await app.checkout.fillForm(customer)
-    await app.checkout.selectPaymentMethod(customer.paymentMethod)
-    await app.checkout.fillDownPayment('0')
-    await app.checkout.expectSummaryTotal(customer.totalPrice)
-    await app.checkout.submit()
-
-    await app.success.expectStatus(customer.status)
+    await runFinancingScenario({ app, orders }, customer, 300, '20000')
   })
 })
 

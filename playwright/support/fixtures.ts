@@ -9,14 +9,14 @@ import type { Kysely, Database } from './database/orderFactory'
 import type { Insertable } from 'kysely'
 import type { OrdersTable } from './database/db'
 
-type App = {
+export type App = {
   orderLookup: ReturnType<typeof createOrderLookupActions>
   configurator: ReturnType<typeof createConfiguratorActions>
   checkout: ReturnType<typeof createCheckoutActions>
   success: ReturnType<typeof createSuccessActions>
 }
 
-type Orders = {
+export type Orders = {
   insert: (order: Insertable<OrdersTable>) => Promise<void>
   deleteByNumber: (orderNumber: string) => Promise<void>
   deleteByCpf: (cpf: string) => Promise<void>
