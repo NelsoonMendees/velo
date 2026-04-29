@@ -101,6 +101,39 @@ test.describe('Checkout e Confirmação - Fluxos de Pagamento', () => {
 
     await app.success.expectStatus(customer.status)
   })
+
+  test('CT08 - Deve reprovar o pedido quando o score for menor ou igual a 500 e a entrada for inferior a 50%', async ({ page, app, orders }) => {
+    const customer = {
+      name: 'Carlos',
+      surname: 'Ferreira',
+      email: 'carlos.ferreira@email.com',
+      phone: '(31) 91234-5678',
+      cpf: '111.444.777-35',
+      store: 'Velô Paulista - Av. Paulista,',
+      acceptTerms: true,
+      paymentMethod: 'financiamento' as PaymentMethod,
+      totalPrice: 'R$ 40.800,00',
+      status: 'REPROVADO' as SuccessStatus
+    }
+
+    await page.route('**/functions/v1/credit-analysis', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'Done', score: 300 })
+      })
+    })
+
+    await orders.deleteByCpf(customer.cpf)
+
+    await app.checkout.fillForm(customer)
+    await app.checkout.selectPaymentMethod(customer.paymentMethod)
+    await app.checkout.fillDownPayment('0')
+    await app.checkout.expectSummaryTotal(customer.totalPrice)
+    await app.checkout.submit()
+
+    await app.success.expectStatus(customer.status)
+  })
 })
 
 test.describe('CT04 - Checkout - Validação de Campos Obrigatórios e Dados Inválidos', () => {

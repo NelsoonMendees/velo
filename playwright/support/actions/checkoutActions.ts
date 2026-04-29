@@ -61,6 +61,10 @@ export function createCheckoutActions(page: Page) {
       await expect(page.getByTestId('summary-total-price')).toHaveText(price)
     },
 
+    async fillDownPayment(value: string) {
+      await page.getByTestId('input-entry-value').fill(value)
+    },
+
     async expectFieldError(field: CheckoutField, message: string) {
       await expect(page.getByTestId(`checkout-${field}-error`)).toHaveText(message)
     },
